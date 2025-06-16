@@ -12,11 +12,25 @@ import {
   doc,
 } from "firebase/firestore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useRouter } from "next/navigation";
+
+type LinkItem = {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+  tags: string[];
+  createdAt?: { seconds: number; nanoseconds: number };
+  updatedAt?: { seconds: number; nanoseconds: number };
+};
 
 export default function DashboardPage() {
+  console.log(getDocs);
+  
   const { user } = useAuthStore();
-  const [links, setLinks] = useState<any[]>([]);
+  const [links, setLinks] = useState<LinkItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
@@ -29,9 +43,9 @@ export default function DashboardPage() {
           orderBy("createdAt", "desc")
         );
         const snapshot = await getDocs(q);
-        const items = snapshot.docs.map((doc) => ({
+        const items: LinkItem[] = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data(),
+          ...(doc.data() as Omit<LinkItem, "id">),
         }));
         setLinks(items);
       } catch (err) {
@@ -58,8 +72,8 @@ export default function DashboardPage() {
     }
   };
 
-  const handleEdit = (link: any) => {
-    alert("수정 페이지는 아직 구현 중입니다.");
+  const handleEdit = (link: LinkItem) => {
+    router.push(`/edit?id=${link.id}`);
   };
 
   if (!user) return <p className="p-8">로그인이 필요합니다.</p>;
@@ -90,7 +104,7 @@ export default function DashboardPage() {
                   </a>
                   <p className="text-sm text-gray-700">{link.description}</p>
                   <div className="mt-1 text-sm text-gray-500">
-                    {link.tags?.map((tag: string) => `#${tag}`).join(" ")}
+                    {link.tags?.map((tag) => `#${tag}`).join(" ")}
                   </div>
                 </div>
                 <div className="ml-4 flex flex-col gap-1">
