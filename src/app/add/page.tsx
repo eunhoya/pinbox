@@ -2,19 +2,46 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function AddPage() {
   const router = useRouter();
+  const { user } = useAuthStore();
 
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 여기서 Firestore로 저장 로직 호출 예정
-    console.log({ title, url, description, tags });
+    if (!user) return alert("로그인이 필요합니다.");
+
+    try {
+      setLoading(true);
+
+      await addDoc(collection(db, "links"), {
+        title,
+        url,
+        description,
+        tags: tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+      });
+
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("링크 저장 오류", error);
+      alert("저장에 실패했어요.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,9 +94,10 @@ export default function AddPage() {
 
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
-          ➕ 링크 추가
+          ➕ {loading ? "저장 중..." : "링크 추가"}
         </button>
       </form>
     </main>
