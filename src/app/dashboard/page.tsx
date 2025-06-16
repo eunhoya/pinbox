@@ -25,12 +25,12 @@ type LinkItem = {
 };
 
 export default function DashboardPage() {
-  console.log(getDocs);
   
   const { user } = useAuthStore();
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  
 
   useEffect(() => {
     if (!user) return;
