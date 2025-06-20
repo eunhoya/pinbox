@@ -27,8 +27,8 @@ export default function EditPage() {
     const fetchLink = async () => {
       try {
         const ref = doc(db, "links", id);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
+        const snap = await getDoc(ref); 
+        if (snap.exists()) {  //해당 문서가 실제로 존재하는지 확인
           const data = snap.data();
           setTitle(data.title || "");
           setUrl(data.url || "");
